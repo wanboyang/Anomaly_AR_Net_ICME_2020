@@ -12,9 +12,6 @@ Please cite with the following BibTeX:
 }
 ```
 
-<p align="center">
-  <img src="images/framework.jpg" width="800"/>
-</p>
 
 
 ## Requirements
