@@ -44,3 +44,6 @@ The models and testing results will be created on ./ckpt and ./results respectiv
 
 ## Acknowledgements
 Thanks the contribution of [W-TALC](https://github.com/sujoyp/wtalc-pytorch) and awesome PyTorch team.
+
+## Contact
+Please contact the first author of the associated paper - Boyang Wan （wanboyangjerry@163.com) for any further queries.
