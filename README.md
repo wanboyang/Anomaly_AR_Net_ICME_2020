@@ -21,7 +21,7 @@ Please cite with the following BibTeX:
 * tqdm
 * [PyTorch](http://pytorch.org/) (1.2)
 * [torchvision](http://pytorch.org/)  
-Recommend: the environment can be established by run
+Recommend: the environment can be established by running
 
 ```
 conda env create -f environment.yaml
@@ -29,7 +29,7 @@ conda env create -f environment.yaml
 
 
 ## Data preparation
-1. Download the [i3d features][link: https://pan.baidu.com/s/1Cn1BDw6EnjlMbBINkbxHSQ password: u4k6] and change the "dataset_path" to you/path/data
+1. Download the [i3d features]([link: https://pan.baidu.com/s/1Cn1BDw6EnjlMbBINkbxHSQ password: u4k6])(https://drive.google.com/file/d/193jToyF8F5rv1SCgRiy_zbW230OrVkuT/view?usp=sharing) and change the "dataset_path" to you/path/data
 
 
 ## Training
