@@ -31,6 +31,9 @@ conda env create -f environment.yaml
 ## Data preparation
 1. Download the [i3d features]([link: https://pan.baidu.com/s/1Cn1BDw6EnjlMbBINkbxHSQ password: u4k6])(https://drive.google.com/file/d/193jToyF8F5rv1SCgRiy_zbW230OrVkuT/view?usp=sharing) and change the "dataset_path" to you/path/data
 
+## Visual Feature Extraction
+if you want to extract Visual Feature like this project, you can clone this project([https://github.com/wanboyang/anomaly_feature])
+
 
 ## Training
 
