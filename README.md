@@ -1,5 +1,5 @@
 # Introduction
-This repository is for **Weakly Supervised Video Anomaly Detection via Center-Guided Discriminative Learning** (ICME 2020). The original paper can be found [here](https://ieeexplore.ieee.org/document/9102722).
+This repository is for **Weakly Supervised Video Anomaly Detection via Center-Guided Discriminative Learning** (ICME 2020). The original paper can be found [here](https://ieeexplore.ieee.org/document/9102722) or https://arxiv.org/abs/2104.07268.
 
 Please cite with the following BibTeX:
 
