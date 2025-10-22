@@ -1,3 +1,9 @@
+"""
+Model architectures for Anomaly AR Net (ICME 2020) / Anomaly AR Net模型架构 (ICME 2020)
+This module contains various neural network models for video anomaly detection.
+此模块包含用于视频异常检测的各种神经网络模型。
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,50 +13,88 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from torch.nn.utils.rnn import pad_packed_sequence
 
 def weights_init(m):
+    """
+    Initialize weights for neural network layers / 初始化神经网络层的权重
+    
+    Args:
+        m: Neural network module / 神经网络模块
+    """
     classname = m.__class__.__name__
     if classname.find('Conv') != -1 or classname.find('Linear') != -1:
-        torch_init.xavier_uniform_(m.weight)
-        m.bias.data.fill_(0)
+        torch_init.xavier_uniform_(m.weight)  # Xavier uniform initialization / Xavier均匀初始化
+        m.bias.data.fill_(0)  # Initialize bias to zero / 将偏置初始化为零
 
 
 class Model_single(torch.nn.Module):
+    """
+    Single-layer neural network model for anomaly detection / 用于异常检测的单层神经网络模型
+    
+    Args:
+        n_feature: Number of input features / 输入特征数量
+    """
     def __init__(self, n_feature):
         super(Model_single, self).__init__()
-        self.fc = nn.Linear(n_feature, n_feature)
-        self.classifier = nn.Linear(n_feature, 1)
-        self.sigmoid = nn.Sigmoid()
-        self.dropout = nn.Dropout(0.7)
-        self.apply(weights_init)
+        self.fc = nn.Linear(n_feature, n_feature)  # Fully connected layer / 全连接层
+        self.classifier = nn.Linear(n_feature, 1)  # Binary classifier / 二分类器
+        self.sigmoid = nn.Sigmoid()  # Sigmoid activation / Sigmoid激活函数
+        self.dropout = nn.Dropout(0.7)  # Dropout for regularization / 用于正则化的Dropout
+        self.apply(weights_init)  # Initialize weights / 初始化权重
 
     def forward(self, inputs, is_training=True):
-        x = F.relu(self.fc(inputs))
+        """
+        Forward pass / 前向传播
+        
+        Args:
+            inputs: Input features / 输入特征
+            is_training: Whether in training mode / 是否处于训练模式
+        
+        Returns:
+            features: Processed features / 处理后的特征
+            predictions: Anomaly predictions / 异常预测
+        """
+        x = F.relu(self.fc(inputs))  # Apply ReLU activation / 应用ReLU激活
         if is_training:
-            x = self.dropout(x)
-        return x, self.sigmoid(self.classifier(x))
+            x = self.dropout(x)  # Apply dropout during training / 训练时应用dropout
+        return x, self.sigmoid(self.classifier(x))  # Return features and predictions / 返回特征和预测
 
 
 class Filter_Module(nn.Module):
+    """
+    Filter module for foreground/background separation / 用于前景/背景分离的过滤模块
+    
+    Args:
+        len_feature: Length of input features / 输入特征长度
+    """
     def __init__(self, len_feature):
         super(Filter_Module, self).__init__()
         self.len_feature = len_feature
         self.conv_1 = nn.Sequential(
             nn.Conv1d(in_channels=self.len_feature, out_channels=512, kernel_size=1,
                       stride=1, padding=0),
-            nn.LeakyReLU()
+            nn.LeakyReLU()  # LeakyReLU activation / LeakyReLU激活函数
         )
         self.conv_2 = nn.Sequential(
             nn.Conv1d(in_channels=512, out_channels=1, kernel_size=1,
                       stride=1, padding=0),
-            nn.Sigmoid()
+            nn.Sigmoid()  # Sigmoid activation for probability output / 用于概率输出的Sigmoid激活
         )
 
     def forward(self, x):
+        """
+        Forward pass / 前向传播
+        
+        Args:
+            x: Input features with shape (B, T, F) / 输入特征，形状为(B, T, F)
+        
+        Returns:
+            out: Foreground weights with shape (B, T, 1) / 前景权重，形状为(B, T, 1)
+        """
         # x: (B, T, F)
-        out = x.permute(0, 2, 1)
+        out = x.permute(0, 2, 1)  # Transpose to (B, F, T) / 转置为(B, F, T)
         # out: (B, F, T)
-        out = self.conv_1(out)
-        out = self.conv_2(out)
-        out = out.permute(0, 2, 1)
+        out = self.conv_1(out)  # Apply first convolution / 应用第一个卷积
+        out = self.conv_2(out)  # Apply second convolution / 应用第二个卷积
+        out = out.permute(0, 2, 1)  # Transpose back to (B, T, 1) / 转置回(B, T, 1)
         # out: (B, T, 1)
         return out
 

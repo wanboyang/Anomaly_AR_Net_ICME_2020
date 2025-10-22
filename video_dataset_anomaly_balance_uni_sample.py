@@ -1,3 +1,9 @@
+"""
+Dataset module for Anomaly AR Net (ICME 2020) / Anomaly AR Net数据集模块 (ICME 2020)
+This module contains dataset classes for loading and processing video anomaly detection data.
+此模块包含用于加载和处理视频异常检测数据的数据集类。
+"""
+
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import utils
@@ -9,19 +15,21 @@ import torch
 
 
 class dataset(Dataset):
+    """
+    Dataset class for video anomaly detection / 视频异常检测的数据集类
+    
+    This class handles loading and preprocessing of video features for training and testing.
+    此类处理训练和测试的视频特征的加载和预处理。
+    """
     def __init__(self, args, train=True, trainlist=None, testlist=None):
         """
-        :param args:
-        self.dataset_path: path to dir contains anomaly datasets
-        self.dataset_name: name of dataset which use now
-        self.feature_modal: features from different input, contain rgb, flow or combine of above type
-        self.feature_pretrain_model: the model name of feature extraction
-        self.feature_path: the dir contain all features, use for training and testing
-        self.videoname: videonames of dataset
-        self.trainlist: videonames of dataset for training
-        self.testlist: videonames of dataset for testing
-        self.train: boolen type, if it is True, the dataset class return training data
-        self.t_max: the max of sampling in training
+        Initialize dataset / 初始化数据集
+        
+        Args:
+            args: Command line arguments / 命令行参数
+            train: Boolean indicating training or testing mode / 布尔值，指示训练或测试模式
+            trainlist: Custom training list / 自定义训练列表
+            testlist: Custom testing list / 自定义测试列表
         """
         self.args = args
         self.dataset_path = args.dataset_path
@@ -54,6 +62,12 @@ class dataset(Dataset):
 
 
     def data_dict_creater(self):
+        """
+        Create data dictionary for faster loading / 创建数据字典以加快加载速度
+        
+        Returns:
+            data_dict: Dictionary mapping video names to features / 将视频名称映射到特征的字典
+        """
         data_dict = {}
         for _i in self.videoname:
             data_dict[_i] = np.load(
@@ -62,20 +76,44 @@ class dataset(Dataset):
 
     def txt2list(self, txtpath=''):
         """
-        use for generating list from text file
-        :param txtpath: path of text file
-        :return: list of text file
+        Generate list from text file / 从文本文件生成列表
+        
+        Args:
+            txtpath: Path of text file / 文本文件路径
+        
+        Returns:
+            filelist: List of file names / 文件名列表
         """
         with open(file=txtpath, mode='r') as f:
             filelist = f.readlines()
         return filelist
 
     def pickle_reader(self, file=''):
+        """
+        Read pickle file / 读取pickle文件
+        
+        Args:
+            file: Path to pickle file / pickle文件路径
+        
+        Returns:
+            Loaded pickle object / 加载的pickle对象
+        """
         with open(file=file, mode='rb') as f:
             video_label_dict = pickle.load(f)
         return video_label_dict
 
     def p_n_split_dataset(self, video_label_dict, trainlist):
+        """
+        Split dataset into normal and anomaly videos / 将数据集拆分为正常和异常视频
+        
+        Args:
+            video_label_dict: Dictionary of video labels / 视频标签字典
+            trainlist: List of training videos / 训练视频列表
+        
+        Returns:
+            normal_video_train: List of normal videos / 正常视频列表
+            anomaly_video_train: List of anomaly videos / 异常视频列表
+        """
         normal_video_train = []
         anomaly_video_train = []
         for t in trainlist:
@@ -197,19 +235,19 @@ class dataset(Dataset):
 
 
 class dataset_train2test(Dataset):
+    """
+    Dataset class for testing on training data / 用于在训练数据上测试的数据集类
+    
+    This class provides access to training data for evaluation purposes.
+    此类提供对训练数据的访问以进行评估目的。
+    """
     def __init__(self, args, trainlist=None):
         """
-        :param args:
-        self.dataset_path: path to dir contains anomaly datasets
-        self.dataset_name: name of dataset which use now
-        self.feature_modal: features from different input, contain rgb, flow or combine of above type
-        self.feature_pretrain_model: the model name of feature extraction
-        self.feature_path: the dir contain all features, use for training and testing
-        self.videoname: videonames of dataset
-        self.trainlist: videonames of dataset for training
-        self.testlist: videonames of dataset for testing
-        self.train: boolen type, if it is True, the dataset class return training data
-        self.t_max: the max of sampling in training
+        Initialize dataset for training data testing / 初始化用于训练数据测试的数据集
+        
+        Args:
+            args: Command line arguments / 命令行参数
+            trainlist: Custom training list / 自定义训练列表
         """
         self.args = args
         self.dataset_path = args.dataset_path

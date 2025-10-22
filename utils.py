@@ -1,17 +1,46 @@
+"""
+Utility functions for Anomaly AR Net (ICME 2020) / Anomaly AR Net工具函数 (ICME 2020)
+This module contains various utility functions for data processing, visualization, and helper operations.
+此模块包含用于数据处理、可视化和辅助操作的各种工具函数。
+"""
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+plt.switch_backend('agg')  # Set backend for matplotlib / 设置matplotlib后端
 import zipfile
 import io
 import torch
 
 
 def random_extract(feat, t_max):
-   r = np.random.randint(len(feat)-t_max)
-   return feat[r:r+t_max], r
+    """
+    Randomly extract a contiguous segment from features / 从特征中随机提取连续片段
+    
+    Args:
+        feat: Input features / 输入特征
+        t_max: Length of segment to extract / 要提取的片段长度
+    
+    Returns:
+        extracted_feat: Extracted feature segment / 提取的特征片段
+        r: Starting index of extraction / 提取的起始索引
+    """
+    r = np.random.randint(len(feat)-t_max)
+    return feat[r:r+t_max], r
 
 def random_extract_step(feat, t_max, step):
+    """
+    Randomly extract a segment with step sampling / 使用步长采样随机提取片段
+    
+    Args:
+        feat: Input features / 输入特征
+        t_max: Length of segment to extract / 要提取的片段长度
+        step: Step size for sampling / 采样的步长
+    
+    Returns:
+        extracted_feat: Extracted feature segment / 提取的特征片段
+        r: Starting index of extraction / 提取的起始索引
+    """
     if len(feat) - step * t_max > 0:
         r = np.random.randint(len(feat) - step * t_max)
     else:
@@ -20,6 +49,17 @@ def random_extract_step(feat, t_max, step):
 
 
 def random_perturb(feat, length):
+    """
+    Randomly perturb feature sampling with jitter / 使用抖动随机扰动特征采样
+    
+    Args:
+        feat: Input features / 输入特征
+        length: Target length for sampling / 采样的目标长度
+    
+    Returns:
+        perturbed_feat: Perturbed feature samples / 扰动的特征样本
+        samples: Sampling indices / 采样索引
+    """
     samples = np.arange(length) * len(feat) / length
     for i in range(length):
         if i < length - 1:
@@ -38,6 +78,16 @@ def random_perturb(feat, length):
 
 
 def pad(feat, min_len):
+    """
+    Pad features to minimum length / 将特征填充到最小长度
+    
+    Args:
+        feat: Input features / 输入特征
+        min_len: Minimum length for padding / 填充的最小长度
+    
+    Returns:
+        Padded features / 填充后的特征
+    """
     if np.shape(feat)[0] <= min_len:
        return np.pad(feat, ((0, min_len-np.shape(feat)[0]), (0, 0)), mode='constant', constant_values=0)
     else:
@@ -45,6 +95,18 @@ def pad(feat, min_len):
 
 
 def process_feat(feat, length, step):
+    """
+    Process features by extraction and padding / 通过提取和填充处理特征
+    
+    Args:
+        feat: Input features / 输入特征
+        length: Target length / 目标长度
+        step: Step size for extraction / 提取的步长
+    
+    Returns:
+        processed_feat: Processed features / 处理后的特征
+        r: Extraction index / 提取索引
+    """
     if len(feat) > length:
         if step and step > 1:
             features, r = random_extract_step(feat, length, step)
@@ -57,6 +119,17 @@ def process_feat(feat, length, step):
 
 
 def process_feat_sample(feat, length):
+    """
+    Process features with perturbation sampling / 使用扰动采样处理特征
+    
+    Args:
+        feat: Input features / 输入特征
+        length: Target length / 目标长度
+    
+    Returns:
+        processed_feat: Processed features / 处理后的特征
+        samples: Sampling indices / 采样索引
+    """
     if len(feat) > length:
             features, samples = random_perturb(feat, length)
             return features, samples
@@ -65,6 +138,16 @@ def process_feat_sample(feat, length):
 
 
 def scorebinary(scores=None, threshold=0.5):
+    """
+    Convert scores to binary values using threshold / 使用阈值将分数转换为二进制值
+    
+    Args:
+        scores: Input scores / 输入分数
+        threshold: Binary threshold / 二进制阈值
+    
+    Returns:
+        Binary scores / 二进制分数
+    """
     scores_threshold = scores.copy()
     scores_threshold[scores_threshold < threshold] = 0
     scores_threshold[scores_threshold >= threshold] = 1
@@ -73,22 +156,22 @@ def scorebinary(scores=None, threshold=0.5):
 
 
 def fill_context_mask(mask, sizes, v_mask, v_unmask):
-    """Fill attention mask inplace for a variable length context.
-    Args
-    ----
-    mask: Tensor of size (B, N, D)
-        Tensor to fill with mask values.
-    sizes: list[int]
-        List giving the size of the context for each item in
-        the batch. Positions beyond each size will be masked.
-    v_mask: float
-        Value to use for masked positions.
-    v_unmask: float
-        Value to use for unmasked positions.
-    Returns
-    -------
-    mask:
-        Filled with values in {v_mask, v_unmask}
+    """
+    Fill attention mask inplace for a variable length context / 为可变长度上下文填充注意力掩码
+    
+    Args:
+        mask: Tensor of size (B, N, D) / 形状为(B, N, D)的张量
+            Tensor to fill with mask values / 要填充掩码值的张量
+        sizes: list[int] / 整数列表
+            List giving the size of the context for each item in the batch / 批次中每个项目的上下文大小列表
+            Positions beyond each size will be masked / 超出每个大小的位置将被掩码
+        v_mask: float / 浮点数
+            Value to use for masked positions / 用于掩码位置的值
+        v_unmask: float / 浮点数
+            Value to use for unmasked positions / 用于非掩码位置的值
+    
+    Returns:
+        mask: Filled with values in {v_mask, v_unmask} / 填充了{v_mask, v_unmask}值的掩码
     """
     mask.fill_(v_unmask)
     n_context = mask.size(2)
@@ -99,6 +182,20 @@ def fill_context_mask(mask, sizes, v_mask, v_unmask):
 
 
 def median(attention_logits, args):
+    """
+    Apply median-based attention filtering / 应用基于中位数的注意力过滤
+    
+    This function filters attention logits by keeping only values above the median
+    and normalizing the remaining values.
+    此函数通过仅保留中位数以上的值并归一化剩余值来过滤注意力logits。
+    
+    Args:
+        attention_logits: Attention logits tensor / 注意力logits张量
+        args: Command line arguments / 命令行参数
+    
+    Returns:
+        Filtered and normalized attention logits / 过滤和归一化的注意力logits
+    """
     attention_medians = torch.zeros(0).to(args.device)
     # attention_logits_median = torch.zeros(0).to(args.device)
     batch_size = attention_logits.shape[0]
@@ -121,13 +218,19 @@ def median(attention_logits, args):
 
 def anomap(predict_dict, label_dict, save_path, itr, save_root, zip=False):
     """
-
-    :param predict_dict:
-    :param label_dict:
-    :param save_path:
-    :param itr:
-    :param zip: boolen, whether save plots to a zip
-    :return:
+    Generate anomaly detection visualization plots / 生成异常检测可视化图
+    
+    This function creates plots showing anomaly scores over time with ground truth
+    annotations for visual evaluation of model performance.
+    此函数创建显示随时间变化的异常分数图，带有真实标注，用于模型性能的视觉评估。
+    
+    Args:
+        predict_dict: Dictionary of predictions for each video / 每个视频的预测字典
+        label_dict: Dictionary of ground truth labels / 真实标签字典
+        save_path: Path to save plots / 保存图的路径
+        itr: Iteration number for naming / 用于命名的迭代编号
+        save_root: Root directory for saving / 保存的根目录
+        zip: Boolean, whether to save plots to a zip file / 布尔值，是否将图保存到zip文件
     """
     if os.path.exists(os.path.join(save_root, save_path, 'plot')) == 0:
         os.makedirs(os.path.join(save_root, save_path, 'plot'))
@@ -170,5 +273,3 @@ def anomap(predict_dict, label_dict, save_path, itr, save_root, zip=False):
             else:
                 plt.savefig(os.path.join(save_root, save_path, 'plot', 'itr_{}'.format(itr), k))
             plt.close()
-
-
